@@ -149,6 +149,9 @@
 			"methods": {
 				"getVaultBalance()": {
 					"details": "コントラクト内の現在のトークン残高を確認する (Wei単位)"
+				},
+				"getVaultBalanceInteger()": {
+					"details": "コントラクト内の現在のトークン残高を確認する (通貨単位)"
 				}
 			},
 			"version": 1
@@ -216,11 +219,11 @@
 			]
 		},
 		"Script/RunningChihuahua.sol": {
-			"keccak256": "0x78564acd69aac0ad64cd7604c817a7d537352eaab44638d6305e462b4e136601",
+			"keccak256": "0xe45a6ac1ad1ac775b68a53fb8cee6321147cbe713b3052d34058ef29c41d5edf",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://665e3001e45d3c72ef6b5884ba0804edb15970c8e8c9818a747725d913c9d9ea",
-				"dweb:/ipfs/QmTGbCRxP6iJDDqcqj9TuXAJvijV1unR4jtbVEqkgCu8Xj"
+				"bzz-raw://9e0d51cd479c1a127e980259d7e486fffb885b613d38dfc4112a858bbfc3e78a",
+				"dweb:/ipfs/QmaKUzLqk4muBfNDZknCTBNZ9E2gMRD8kinkTJpcfKkKTW"
 			]
 		}
 	},

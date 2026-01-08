@@ -34,6 +34,9 @@ contract CHHClaimVault {
     function getVaultBalance() public view returns (uint256) {
         return token.balanceOf(address(this));
     }
+    /**
+     * @dev コントラクト内の現在のトークン残高を確認する (通貨単位)
+     */
     function getVaultBalanceInteger() public view returns (uint256) {
         return token.balanceOf(address(this)) * 10^18;
     }

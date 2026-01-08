@@ -6,14 +6,64 @@
 	"output": {
 		"abi": [
 			{
+				"inputs": [],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					}
+				],
+				"name": "BonusClaimed",
+				"type": "event"
+			},
+			{
 				"inputs": [
 					{
 						"internalType": "address",
-						"name": "account",
+						"name": "user",
 						"type": "address"
 					}
 				],
-				"name": "balanceOf",
+				"name": "canClaim",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "claim",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"name": "lastClaimTime",
 				"outputs": [
 					{
 						"internalType": "uint256",
@@ -25,27 +75,29 @@
 				"type": "function"
 			},
 			{
-				"inputs": [
-					{
-						"internalType": "address",
-						"name": "to",
-						"type": "address"
-					},
-					{
-						"internalType": "uint256",
-						"name": "value",
-						"type": "uint256"
-					}
-				],
-				"name": "transfer",
+				"inputs": [],
+				"name": "owner",
 				"outputs": [
 					{
-						"internalType": "bool",
+						"internalType": "address",
 						"name": "",
-						"type": "bool"
+						"type": "address"
 					}
 				],
-				"stateMutability": "nonpayable",
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "signerAddress",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
 				"type": "function"
 			}
 		],
@@ -62,7 +114,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"Script/RunningChihuahua.sol": "IERC20"
+			"Script/RunningChihuahuaDailyBonus.sol": "DailyBonus"
 		},
 		"evmVersion": "osaka",
 		"libraries": {},
@@ -116,12 +168,12 @@
 				"dweb:/ipfs/QmVUSvooZKEdEdap619tcJjTLcAuH6QBdZqAzWwnAXZAWJ"
 			]
 		},
-		"Script/RunningChihuahua.sol": {
-			"keccak256": "0xe45a6ac1ad1ac775b68a53fb8cee6321147cbe713b3052d34058ef29c41d5edf",
+		"Script/RunningChihuahuaDailyBonus.sol": {
+			"keccak256": "0x6c3bdc6937e74a8ce14b6bbc41fe15c648c2f78e6c745f3b45106ba627452c3a",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://9e0d51cd479c1a127e980259d7e486fffb885b613d38dfc4112a858bbfc3e78a",
-				"dweb:/ipfs/QmaKUzLqk4muBfNDZknCTBNZ9E2gMRD8kinkTJpcfKkKTW"
+				"bzz-raw://ddc08097aebee3334e9a4518d3295a43b3a4919739f6bb990a4bc4ce4a9e21f8",
+				"dweb:/ipfs/QmNaKfm5YRAPbRBQBB8KjH2FuurmzizwuzJRJWbXLUQvts"
 			]
 		}
 	},
