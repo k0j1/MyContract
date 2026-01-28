@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
-contract ReversiPopClaim is Ownable {
+contract ReversiClaim is Ownable {
     using ECDSA for bytes32;
 
     // $CHH Token Address
@@ -29,7 +29,7 @@ contract ReversiPopClaim is Ownable {
         _transferOwnership(0x9eB566Cc59e3e9D42209Dd2d832740a6A74f5F23);
     }
 
-    // New: Check if user can claim today (returns true if eligible)
+    // Check if user can claim today (returns true if eligible)
     function checkDailyLimit(address user) public view returns (bool) {
         uint256 currentDay = block.timestamp / 1 days;
         uint256 lastClaimedDay = lastClaimTime[user] / 1 days;
@@ -41,13 +41,16 @@ contract ReversiPopClaim is Ownable {
     // Claim function
     function claim(uint256 amount, bytes calldata signature) external {
         require(amount > 0, "Amount must be > 0");
-        require(amount <= 1500 * 10**18, "Amount exceeds limit (1500 CHH)");
+        // Limit check for RAW amount (e.g. 1500 tokens, not wei)
+        require(amount <= 1500, "Amount exceeds limit (1500 CHH)");
 
-        // 1. Check Daily Limit using the new function
+        // 1. Check Daily Limit
         require(checkDailyLimit(msg.sender), "Already claimed today (resets at UTC 0:00)");
 
         // 2. Verify Signature
-        bytes32 hash = keccak256(abi.encodePacked(msg.sender, amount, address(this)));
+        // Backend signs: keccak256(abi.encodePacked(address, amount))
+        // NOTE: removed address(this) to match PHP backend
+        bytes32 hash = keccak256(abi.encodePacked(msg.sender, amount));
         bytes32 ethSignedMessageHash = MessageHashUtils.toEthSignedMessageHash(hash);
         
         address recoveredSigner = ethSignedMessageHash.recover(signature);
@@ -57,11 +60,14 @@ contract ReversiPopClaim is Ownable {
         lastClaimTime[msg.sender] = block.timestamp;
 
         // 4. Transfer Tokens
-        require(chhToken.balanceOf(address(this)) >= amount, "Contract has insufficient balance");
-        bool success = chhToken.transfer(msg.sender, amount);
+        // Convert raw amount to Wei (assuming 18 decimals)
+        uint256 amountWei = amount * 10**18;
+
+        require(chhToken.balanceOf(address(this)) >= amountWei, "Contract has insufficient balance");
+        bool success = chhToken.transfer(msg.sender, amountWei);
         require(success, "Token transfer failed");
         
-        emit Claimed(msg.sender, amount);
+        emit Claimed(msg.sender, amountWei);
     }
 
     // Check remaining contract balance
