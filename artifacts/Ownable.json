@@ -37,37 +37,40 @@
 		},
 		"gasEstimates": null,
 		"methodIdentifiers": {
-			"transferFrom(address,address,uint256)": "23b872dd"
+			"owner()": "8da5cb5b"
 		}
 	},
 	"abi": [
 		{
+			"anonymous": false,
 			"inputs": [
 				{
+					"indexed": true,
 					"internalType": "address",
-					"name": "from",
+					"name": "previousOwner",
 					"type": "address"
 				},
 				{
+					"indexed": true,
 					"internalType": "address",
-					"name": "to",
+					"name": "newOwner",
 					"type": "address"
-				},
-				{
-					"internalType": "uint256",
-					"name": "value",
-					"type": "uint256"
 				}
 			],
-			"name": "transferFrom",
+			"name": "OwnershipTransferred",
+			"type": "event"
+		},
+		{
+			"inputs": [],
+			"name": "owner",
 			"outputs": [
 				{
-					"internalType": "bool",
+					"internalType": "address",
 					"name": "",
-					"type": "bool"
+					"type": "address"
 				}
 			],
-			"stateMutability": "nonpayable",
+			"stateMutability": "view",
 			"type": "function"
 		}
 	]
