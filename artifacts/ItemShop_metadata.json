@@ -83,6 +83,12 @@
 					{
 						"indexed": false,
 						"internalType": "uint256",
+						"name": "whetstoneAmount",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
 						"name": "totalCost",
 						"type": "uint256"
 					}
@@ -123,6 +129,12 @@
 						"internalType": "uint256",
 						"name": "newElixirPrice",
 						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "newWhetstonePrice",
+						"type": "uint256"
 					}
 				],
 				"name": "PricesUpdated",
@@ -151,6 +163,11 @@
 					{
 						"internalType": "uint256",
 						"name": "elixirAmount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "whetstoneAmount",
 						"type": "uint256"
 					}
 				],
@@ -229,6 +246,11 @@
 						"internalType": "uint256",
 						"name": "_elixirPrice",
 						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_whetstonePrice",
+						"type": "uint256"
 					}
 				],
 				"name": "setPrices",
@@ -274,6 +296,19 @@
 				],
 				"stateMutability": "view",
 				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "whetstonePrice",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
 			}
 		],
 		"devdoc": {
@@ -302,18 +337,12 @@
 			},
 			"kind": "dev",
 			"methods": {
-				"buyItems(uint256,uint256)": {
+				"buyItems(uint256,uint256,uint256)": {
 					"details": "アイテムを購入する関数",
 					"params": {
 						"elixirAmount": "購入するエリクサーの数",
-						"potionAmount": "購入するポーションの数"
-					}
-				},
-				"constructor": {
-					"details": "コンストラクタ",
-					"params": {
-						"_chhToken": "決済に使用するERC20トークンのアドレス",
-						"_treasury": "売上を受け取るアドレス"
+						"potionAmount": "購入するポーションの数",
+						"whetstoneAmount": "購入する砥石の数 (追加)"
 					}
 				},
 				"owner()": {
@@ -322,18 +351,8 @@
 				"renounceOwnership()": {
 					"details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby disabling any functionality that is only available to the owner."
 				},
-				"setPrices(uint256,uint256)": {
-					"details": "アイテムの価格を更新する関数（オーナーのみ実行可能）",
-					"params": {
-						"_elixirPrice": "新しいエリクサーの価格",
-						"_potionPrice": "新しいポーションの価格"
-					}
-				},
-				"setTreasury(address)": {
-					"details": "トレジャリーアドレスを更新する関数（オーナーのみ実行可能）",
-					"params": {
-						"_treasury": "新しいトレジャリーアドレス"
-					}
+				"setPrices(uint256,uint256,uint256)": {
+					"details": "アイテムの価格を更新する関数"
 				},
 				"transferOwnership(address)": {
 					"details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
@@ -437,11 +456,11 @@
 			]
 		},
 		"Script/MiningQuestShop.sol": {
-			"keccak256": "0x72553c517b5effa32ce702c13c2ef7cdf4a1748a083f251a04e7949c1d93a520",
+			"keccak256": "0x67661d7e0cfab0edcb706d95a8b977879c914447ef5210c4f9cb0000d0c405e3",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://45f0ad380f3eccf1fc51191c265a35027614d16f075c42b52f99a88ab7512b57",
-				"dweb:/ipfs/QmfKhhK2wehhUpwQj98xTosnf2dsCnZTCXDbyPuGxnf3U3"
+				"bzz-raw://44a03840e0dad261e765551e7748941413e58597746b30d003b7b2aa3bd50e5d",
+				"dweb:/ipfs/QmX15YMxW6PWf35hENZqoSNHqVwpXCNwfkTzDcxc6sqyjq"
 			]
 		}
 	},
