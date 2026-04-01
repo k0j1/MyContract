@@ -44,19 +44,6 @@
 					{
 						"indexed": true,
 						"internalType": "address",
-						"name": "newAddress",
-						"type": "address"
-					}
-				],
-				"name": "KoharuAddressUpdated",
-				"type": "event"
-			},
-			{
-				"anonymous": false,
-				"inputs": [
-					{
-						"indexed": true,
-						"internalType": "address",
 						"name": "previousOwner",
 						"type": "address"
 					},
@@ -81,12 +68,12 @@
 					},
 					{
 						"indexed": false,
-						"internalType": "bool",
-						"name": "status",
-						"type": "bool"
+						"internalType": "uint256",
+						"name": "chhAmount",
+						"type": "uint256"
 					}
 				],
-				"name": "TestUserStatusUpdated",
+				"name": "RewardClaimed",
 				"type": "event"
 			},
 			{
@@ -97,6 +84,25 @@
 						"internalType": "uint256",
 						"name": "",
 						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_user",
+						"type": "address"
+					}
+				],
+				"name": "checkIsTestUser",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
 					}
 				],
 				"stateMutability": "view",
@@ -118,19 +124,6 @@
 			{
 				"inputs": [],
 				"name": "claim",
-				"outputs": [],
-				"stateMutability": "nonpayable",
-				"type": "function"
-			},
-			{
-				"inputs": [
-					{
-						"internalType": "address",
-						"name": "_user",
-						"type": "address"
-					}
-				],
-				"name": "getUserAssets",
 				"outputs": [
 					{
 						"components": [
@@ -190,7 +183,97 @@
 						"type": "tuple"
 					}
 				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_user",
+						"type": "address"
+					}
+				],
+				"name": "getClaimStatus",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
 				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint8",
+						"name": "roleType",
+						"type": "uint8"
+					}
+				],
+				"name": "getRewardsByRole",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "uint256",
+								"name": "chhBalance",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "heroCommon",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "heroUncommon",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "heroRare",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "equipCommon",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "equipUncommon",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "equipRare",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "itemPotion",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "itemElixir",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "itemWhetstone",
+								"type": "uint256"
+							}
+						],
+						"internalType": "struct RewardManager.UserAssets",
+						"name": "assets",
+						"type": "tuple"
+					}
+				],
+				"stateMutability": "pure",
 				"type": "function"
 			},
 			{
@@ -258,8 +341,97 @@
 				"type": "function"
 			},
 			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_user",
+						"type": "address"
+					}
+				],
+				"name": "previewClaimAmount",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "uint256",
+								"name": "chhBalance",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "heroCommon",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "heroUncommon",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "heroRare",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "equipCommon",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "equipUncommon",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "equipRare",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "itemPotion",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "itemElixir",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "itemWhetstone",
+								"type": "uint256"
+							}
+						],
+						"internalType": "struct RewardManager.UserAssets",
+						"name": "",
+						"type": "tuple"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
 				"inputs": [],
 				"name": "renounceOwnership",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_user",
+						"type": "address"
+					},
+					{
+						"internalType": "bool",
+						"name": "_status",
+						"type": "bool"
+					}
+				],
+				"name": "setClaimStatus",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -388,21 +560,17 @@
 			},
 			"kind": "dev",
 			"methods": {
+				"claim()": {
+					"details": "報酬をClaimし、更新後の全資産状況を返す"
+				},
+				"getRewardsByRole(uint8)": {
+					"details": "属性(Role)ごとの報酬内容を返す 戻り値に名前を付けることで、初期化コードを簡略化し警告を回避します。"
+				},
 				"owner()": {
 					"details": "Returns the address of the current owner."
 				},
 				"renounceOwnership()": {
 					"details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby disabling any functionality that is only available to the owner."
-				},
-				"setKoharuAddress(address)": {
-					"details": "こはるさんのアドレスを設定"
-				},
-				"setTestUsers(address[],bool)": {
-					"details": "テストユーザーを一人ずつ、または一括で追加・削除する",
-					"params": {
-						"status": "trueで追加、falseで削除",
-						"users": "アドレスの配列"
-					}
 				},
 				"transferOwnership(address)": {
 					"details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
@@ -457,11 +625,11 @@
 			]
 		},
 		"Script/MiningQuestTaskReward.sol": {
-			"keccak256": "0xbb5f67ee453a6e289f874c9bb3debb72580f7c9678a6321587505d0037eaabe6",
+			"keccak256": "0xcf6569406aea2debb745fbd05fc5c3a59f8caeafa37d1a7a7169497164973f7b",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://c3a4b31b75a2c441f8e165ecf15e91182367388f75707c09722b11e04c3489d7",
-				"dweb:/ipfs/QmPEy22xViPGgMbVeUgeXeN9bAiYbAHYymFsVBZXsxp6AT"
+				"bzz-raw://50557d2cfb6871c51a64271c66fe4bfeacc3e1fc834980bf04fec9d24d927f8d",
+				"dweb:/ipfs/QmR4UBoE5MQ4P4t3y1QWpJqSDfwtwUnYK1Y1fHTvKbzp2u"
 			]
 		}
 	},

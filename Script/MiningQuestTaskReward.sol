@@ -20,94 +20,126 @@ contract RewardManager is Ownable {
     }
 
     IERC20 public chhToken;
-    
     mapping(address => UserAssets) public userAssets;
     mapping(address => bool) public hasClaimed;
-    
-    // テストユーザーを判定するためのマッピング
     mapping(address => bool) public isTestUser;
-    // こはるさんアドレス
     address public koharuAddress;
 
     uint256 public constant DEADLINE_APRIL = 1777593599;
 
-    event TestUserStatusUpdated(address indexed user, bool status);
-    event KoharuAddressUpdated(address indexed newAddress);
+    event RewardClaimed(address indexed user, uint256 chhAmount);
 
     constructor(address _chhTokenAddress) Ownable(msg.sender) {
         chhToken = IERC20(_chhTokenAddress);
     }
 
-    /**
-     * @dev こはるさんのアドレスを設定
-     */
+    // --- 管理用関数 ---
+
     function setKoharuAddress(address _koharu) external onlyOwner {
         koharuAddress = _koharu;
-        emit KoharuAddressUpdated(_koharu);
     }
 
-    /**
-     * @dev テストユーザーを一人ずつ、または一括で追加・削除する
-     * @param users アドレスの配列
-     * @param status trueで追加、falseで削除
-     */
     function setTestUsers(address[] calldata users, bool status) external onlyOwner {
         for (uint256 i = 0; i < users.length; i++) {
             isTestUser[users[i]] = status;
-            emit TestUserStatusUpdated(users[i], status);
         }
     }
 
-    function claim() external {
-        require(!hasClaimed[msg.sender], "Already claimed");
-        hasClaimed[msg.sender] = true;
+    // --- 確認用関数 ---
 
-        UserAssets storage assets = userAssets[msg.sender];
-        uint256 rewardChh = 0;
+    function getClaimStatus(address _user) external view returns (bool) {
+        return hasClaimed[_user];
+    }
 
-        // 1. こはるさん判定
-        if (msg.sender == koharuAddress) {
-            rewardChh = 100000 * 10**18;
-            assets.chhBalance += rewardChh;
-            assets.heroRare += 3;
-            assets.equipRare += 9;
-            assets.itemPotion += 30;
-            assets.itemElixir += 10;
-            assets.itemWhetstone += 30;
-        } 
-        // 2. テストユーザー判定 (mappingにより複数人対応)
-        else if (isTestUser[msg.sender]) {
-            rewardChh = 100000 * 10**18;
-            assets.chhBalance += rewardChh;
-            assets.heroUncommon += 3;
-            assets.equipCommon += 9;
-            assets.itemPotion += 30;
-            assets.itemElixir += 10;
-            assets.itemWhetstone += 30;
-        } 
-        // 3. 一般新規ユーザー判定
-        else {
+    function setClaimStatus(address _user, bool _status) external onlyOwner {
+        hasClaimed[_user] = _status;
+    }
+
+    function checkIsTestUser(address _user) external view returns (bool) {
+        return isTestUser[_user];
+    }
+
+    /**
+    * @dev 属性(Role)ごとの報酬内容を返す
+    * 戻り値に名前を付けることで、初期化コードを簡略化し警告を回避します。
+    */
+    function getRewardsByRole(uint8 roleType) public pure returns (UserAssets memory assets) {
+        if (roleType == 0) { // こはるさん
+            assets.chhBalance = 100000 * 10**18;
+            assets.heroRare = 3;
+            assets.equipRare = 9;
+            assets.itemPotion = 30;
+            assets.itemElixir = 10;
+            assets.itemWhetstone = 30;
+        } else if (roleType == 1) { // テストユーザー
+            assets.chhBalance = 100000 * 10**18;
+            assets.heroUncommon = 3;
+            assets.equipCommon = 9;
+            assets.itemPotion = 30;
+            assets.itemElixir = 10;
+            assets.itemWhetstone = 30;
+        } else if (roleType == 2) { // 新規（4月）
+            assets.heroCommon = 3;
+            assets.heroUncommon = 1;
+            assets.itemPotion = 30;
+            assets.itemElixir = 1;
+            assets.itemWhetstone = 10;
+        } else if (roleType == 3) { // 新規（5月以降）
+            assets.heroCommon = 3;
+            assets.itemPotion = 10;
+            assets.itemElixir = 1;
+            assets.itemWhetstone = 5;
+        }
+        // else の場合は初期値（すべて0）の assets がそのまま返ります
+    }
+
+    function previewClaimAmount(address _user) public view returns (UserAssets memory) {
+        if (hasClaimed[_user]) {
+            return UserAssets(0,0,0,0,0,0,0,0,0,0);
+        }
+
+        if (_user == koharuAddress) {
+            return getRewardsByRole(0);
+        } else if (isTestUser[_user]) {
+            return getRewardsByRole(1);
+        } else {
             if (block.timestamp <= DEADLINE_APRIL) {
-                assets.heroCommon += 3;
-                assets.heroUncommon += 1;
-                assets.itemPotion += 30;
-                assets.itemElixir += 1;
-                assets.itemWhetstone += 10;
+                return getRewardsByRole(2);
             } else {
-                assets.heroCommon += 3;
-                assets.itemPotion += 10;
-                assets.itemElixir += 1;
-                assets.itemWhetstone += 5;
+                return getRewardsByRole(3);
             }
         }
-
-        if (rewardChh > 0) {
-            require(chhToken.balanceOf(address(this)) >= rewardChh, "Insufficient CHH");
-            require(chhToken.transfer(msg.sender, rewardChh), "Transfer failed");
-        }
     }
 
-    function getUserAssets(address _user) external view returns (UserAssets memory) {
-        return userAssets[_user];
+    /**
+     * @dev 報酬をClaimし、更新後の全資産状況を返す
+     */
+    function claim() external returns (UserAssets memory) {
+        require(!hasClaimed[msg.sender], "Already claimed");
+        
+        UserAssets memory reward = previewClaimAmount(msg.sender);
+        hasClaimed[msg.sender] = true;
+
+        // ストレージの更新
+        UserAssets storage current = userAssets[msg.sender];
+        current.chhBalance += reward.chhBalance;
+        current.heroCommon += reward.heroCommon;
+        current.heroUncommon += reward.heroUncommon;
+        current.heroRare += reward.heroRare;
+        current.equipCommon += reward.equipCommon;
+        current.equipUncommon += reward.equipUncommon;
+        current.equipRare += reward.equipRare;
+        current.itemPotion += reward.itemPotion;
+        current.itemElixir += reward.itemElixir;
+        current.itemWhetstone += reward.itemWhetstone;
+
+        if (reward.chhBalance > 0) {
+            require(chhToken.balanceOf(address(this)) >= reward.chhBalance, "Insufficient CHH");
+            require(chhToken.transfer(msg.sender, reward.chhBalance), "Transfer failed");
+        }
+
+        emit RewardClaimed(msg.sender, reward.chhBalance);
+        
+        return current; // 更新後の資産状況を返す
     }
 }
