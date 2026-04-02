@@ -28,6 +28,7 @@ contract RewardManager is Ownable {
     uint256 public constant DEADLINE_APRIL = 1777593599;
 
     event RewardClaimed(address indexed user, uint256 chhAmount);
+    event ClaimStatusReset(address indexed user, bool status);
 
     constructor(address _chhTokenAddress) Ownable(msg.sender) {
         chhToken = IERC20(_chhTokenAddress);
@@ -45,14 +46,14 @@ contract RewardManager is Ownable {
         }
     }
 
-    // --- 確認用関数 ---
+    function setClaimStatus(address _user, bool _status) external onlyOwner {
+        hasClaimed[_user] = _status;
+        if (!_status) delete userAssets[_user]; // assetもリセット
+        emit ClaimStatusReset(_user, _status);
+    }
 
     function getClaimStatus(address _user) external view returns (bool) {
         return hasClaimed[_user];
-    }
-
-    function setClaimStatus(address _user, bool _status) external onlyOwner {
-        hasClaimed[_user] = _status;
     }
 
     function checkIsTestUser(address _user) external view returns (bool) {
@@ -90,24 +91,16 @@ contract RewardManager is Ownable {
             assets.itemElixir = 1;
             assets.itemWhetstone = 5;
         }
-        // else の場合は初期値（すべて0）の assets がそのまま返ります
     }
 
     function previewClaimAmount(address _user) public view returns (UserAssets memory) {
-        if (hasClaimed[_user]) {
-            return UserAssets(0,0,0,0,0,0,0,0,0,0);
-        }
-
-        if (_user == koharuAddress) {
-            return getRewardsByRole(0);
-        } else if (isTestUser[_user]) {
-            return getRewardsByRole(1);
+        if (hasClaimed[_user]) return UserAssets(0,0,0,0,0,0,0,0,0,0);
+        if (_user == koharuAddress) return getRewardsByRole(0);
+        if (isTestUser[_user]) return getRewardsByRole(1);        
+        if (block.timestamp <= DEADLINE_APRIL) {
+            return getRewardsByRole(2);
         } else {
-            if (block.timestamp <= DEADLINE_APRIL) {
-                return getRewardsByRole(2);
-            } else {
-                return getRewardsByRole(3);
-            }
+            return getRewardsByRole(3);
         }
     }
 
@@ -139,7 +132,6 @@ contract RewardManager is Ownable {
         }
 
         emit RewardClaimed(msg.sender, reward.chhBalance);
-        
         return current; // 更新後の資産状況を返す
     }
 }

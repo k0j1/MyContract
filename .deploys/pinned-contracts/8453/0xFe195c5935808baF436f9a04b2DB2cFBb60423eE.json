@@ -1,7 +1,7 @@
 {
   "name": "RewardManager",
-  "address": "0x6A523D4Dc4C0D1811A22c22f1f7971FeD14F2ee6",
-  "timestamp": 1775033653174,
+  "address": "0xFe195c5935808baF436f9a04b2DB2cFBb60423eE",
+  "timestamp": 1775044191402,
   "abi": [
     {
       "inputs": [],
@@ -100,6 +100,25 @@
       ],
       "name": "OwnableUnauthorizedAccount",
       "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "bool",
+          "name": "status",
+          "type": "bool"
+        }
+      ],
+      "name": "ClaimStatusReset",
+      "type": "event"
     },
     {
       "anonymous": false,
@@ -544,5 +563,5 @@
     }
   ],
   "filePath": "MyContract-1769446744385/Script/MiningQuestTaskReward.sol",
-  "pinnedAt": 1775033657435
+  "pinnedAt": 1775044213876
 }

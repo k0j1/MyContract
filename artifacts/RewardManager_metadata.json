@@ -44,6 +44,25 @@
 					{
 						"indexed": true,
 						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "bool",
+						"name": "status",
+						"type": "bool"
+					}
+				],
+				"name": "ClaimStatusReset",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
 						"name": "previousOwner",
 						"type": "address"
 					},
@@ -625,11 +644,11 @@
 			]
 		},
 		"Script/MiningQuestTaskReward.sol": {
-			"keccak256": "0xcf6569406aea2debb745fbd05fc5c3a59f8caeafa37d1a7a7169497164973f7b",
+			"keccak256": "0x7b32c27146d0571771c9ef383954c22c4bed7ef2b2e6fac1bbe746658e00117b",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://50557d2cfb6871c51a64271c66fe4bfeacc3e1fc834980bf04fec9d24d927f8d",
-				"dweb:/ipfs/QmR4UBoE5MQ4P4t3y1QWpJqSDfwtwUnYK1Y1fHTvKbzp2u"
+				"bzz-raw://b578cfce404bd303655b033898610511cbc2a053d46821931b1f74b7d3b02b90",
+				"dweb:/ipfs/QmUJUKX5R7W8x7FxNiRtrn8E8uQpxnPLp56wPdzBunmW5u"
 			]
 		}
 	},
