@@ -107,5 +107,8 @@
       "level": "info",
       "console": true
     }
+  },
+  "scenarios": {
+    "lastSavedScenario": "scenario.json"
   }
 }
