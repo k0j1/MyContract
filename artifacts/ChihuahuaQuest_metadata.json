@@ -76,6 +76,25 @@
 					{
 						"indexed": true,
 						"internalType": "address",
+						"name": "player",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "feePaid",
+						"type": "uint256"
+					}
+				],
+				"name": "ClaimCooldownReset",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
 						"name": "previousOwner",
 						"type": "address"
 					},
@@ -87,6 +106,25 @@
 					}
 				],
 				"name": "OwnershipTransferred",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "token",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "fee",
+						"type": "uint256"
+					}
+				],
+				"name": "PaymentConfigUpdated",
 				"type": "event"
 			},
 			{
@@ -188,6 +226,30 @@
 				"inputs": [
 					{
 						"internalType": "address",
+						"name": "player",
+						"type": "address"
+					}
+				],
+				"name": "getPlayerInventory",
+				"outputs": [
+					{
+						"internalType": "uint256[]",
+						"name": "ids",
+						"type": "uint256[]"
+					},
+					{
+						"internalType": "uint256[]",
+						"name": "counts",
+						"type": "uint256[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
 						"name": "",
 						"type": "address"
 					}
@@ -236,6 +298,19 @@
 				"type": "function"
 			},
 			{
+				"inputs": [],
+				"name": "paymentToken",
+				"outputs": [
+					{
+						"internalType": "contract IERC20",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
 				"inputs": [
 					{
 						"internalType": "uint256[]",
@@ -266,6 +341,26 @@
 				"type": "function"
 			},
 			{
+				"inputs": [],
+				"name": "resetClaimCooldown",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "resetFee",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
 				"inputs": [
 					{
 						"internalType": "address",
@@ -281,17 +376,35 @@
 			{
 				"inputs": [
 					{
+						"internalType": "address",
+						"name": "_tokenAddress",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_fee",
+						"type": "uint256"
+					}
+				],
+				"name": "setPaymentConfig",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
 						"internalType": "uint256[]",
 						"name": "treasureIds",
 						"type": "uint256[]"
 					},
 					{
 						"internalType": "uint256[]",
-						"name": "chhAmounts",
+						"name": "chhAmountsInEther",
 						"type": "uint256[]"
 					}
 				],
-				"name": "setTreasureRewards",
+				"name": "setTreasureRewardsBatch",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -332,10 +445,41 @@
 				],
 				"stateMutability": "view",
 				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "userInventory",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "withdrawPaymentTokens",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
 			}
 		],
 		"devdoc": {
-			"details": "1日1回、財宝報酬を一括受取するための最適化済みコントラクト 履歴はイベントログから取得し、コントラクト側はリセット判定のみを管理することでガス代を節約します。",
+			"details": "1日1回報酬受取、手数料によるリセット、およびオンチェーン図鑑機能を備えたゲームコントラクト",
 			"errors": {
 				"ECDSAInvalidSignature()": [
 					{
@@ -365,31 +509,32 @@
 			},
 			"kind": "dev",
 			"methods": {
-				"canClaimToday(address)": {
-					"details": "フロントエンド用：今日報酬を受け取れる状態か確認"
+				"getPlayerInventory(address)": {
+					"details": "ユーザーの図鑑データを一括取得"
 				},
 				"owner()": {
 					"details": "Returns the address of the current owner."
 				},
 				"recordGameSession(uint256[],uint256,bytes)": {
-					"details": "ゲームセッションを記録し、1日分の報酬を一括で受け取る",
-					"params": {
-						"nonce": "現在のユーザーのnonce",
-						"signature": "バックエンドからの署名",
-						"treasureIds": "獲得した財宝の配列"
-					}
+					"details": "報酬の受け取りと図鑑の更新を一括で行う"
 				},
 				"renounceOwnership()": {
 					"details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby disabling any functionality that is only available to the owner."
 				},
-				"setBackendSigner(address)": {
-					"details": "署名者アドレスの変更"
+				"resetClaimCooldown()": {
+					"details": "費用を支払い、本日のClaim制限を解除する"
 				},
-				"setTreasureRewards(uint256[],uint256[])": {
-					"details": "財宝の報酬設定を追加・更新する（一括対応）"
+				"setPaymentConfig(address,uint256)": {
+					"details": "支払い設定（リセット費用）の変更"
+				},
+				"setTreasureRewardsBatch(uint256[],uint256[])": {
+					"details": "財宝の報酬設定を一括更新（入力値は ether 単位）"
 				},
 				"transferOwnership(address)": {
 					"details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+				},
+				"withdrawPaymentTokens()": {
+					"details": "貯まった支払いトークンを回収"
 				}
 			},
 			"title": "ChihuahuaQuest",
@@ -506,11 +651,11 @@
 			]
 		},
 		"Script/ChihuahuaQuest.sol": {
-			"keccak256": "0x865a8e9971067c3e34f82354b3637f13ae72cd7a6067f9b802cc2fd2b6eda090",
+			"keccak256": "0x608ac42ac26c4b31edfa1de6eda781ec71e4c005e58c7c3a67a6169a538db694",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://e364b8bfd665809560f7c40a47deb5e0c9ae63bedcf36170455de8e46b15dbb8",
-				"dweb:/ipfs/Qmeo925JqMN7zjQUwa7fR6XMCYu4Dr1jFfFnZhrN7npeLz"
+				"bzz-raw://be27add3a74fb8ef91060c6ba54965128373f3f6d220ebc95235051420b90106",
+				"dweb:/ipfs/QmWXLyPj54yjsJRoaoqSApQpbFqtLJyAgDxVR4TFvbihVB"
 			]
 		}
 	},
