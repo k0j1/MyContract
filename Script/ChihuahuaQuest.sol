@@ -8,16 +8,16 @@ import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 /**
  * @title ChihuahuaQuest
- * @dev 1日1回報酬受取、手数料によるリセット、およびオンチェーン図鑑機能を備えたゲームコントラクト
+ * @dev 報酬受取、クールダウンリセット、オンチェーン図鑑、不正防止バリデーションを統合
  */
 contract ChihuahuaQuest is Ownable {
     using ECDSA for bytes32;
 
-    // --- トークン・署名者設定 ---
-    IERC20 public immutable chhToken;      // 報酬用CHH
-    IERC20 public paymentToken;           // クールダウン解除用 (USDC等)
-    address public backendSigner;         // 署名検証用アドレス
-    uint256 public resetFee;              // 解除に必要な費用
+    // --- 設定変数 ---
+    IERC20 public immutable chhToken;       // 報酬用CHHトークン
+    IERC20 public paymentToken;             // リセット用トークン (USDC等)
+    address public backendSigner;           // 署名検証用アドレス
+    uint256 public resetFee;                // リセット費用
 
     // --- 報酬・図鑑データ構造 ---
     struct RewardConfig {
@@ -25,14 +25,14 @@ contract ChihuahuaQuest is Ownable {
         bool exists;
     }
 
-    mapping(uint256 => RewardConfig) public treasureRewards; // お宝ごとの報酬額
-    mapping(address => uint256) public lastClaimDay;        // 最終受取日 (block.timestamp / 1 days)
-    mapping(address => uint256) public nonces;              // リプレイ攻撃防止用
+    mapping(uint256 => RewardConfig) public treasureRewards;    // お宝報酬設定
+    mapping(address => uint256) public lastClaimDay;            // 最終受取日 (JST 9:00基準)
+    mapping(address => uint256) public nonces;                  // リプレイ攻撃防止
 
-    // 図鑑用ストレージ
-    mapping(address => mapping(uint256 => uint256)) public userInventory; // player => treasureId => count
-    mapping(address => uint256[]) private userOwnedIds;                 // playerが所持しているIDリスト
-    mapping(address => mapping(uint256 => bool)) private isIdInList;    // リスト重複登録防止用
+    // 図鑑ストレージ
+    mapping(address => mapping(uint256 => uint256)) public userInventory;   // player => tid => count
+    mapping(address => uint256[]) private userOwnedIds;                     // playerの所持IDリスト
+    mapping(address => mapping(uint256 => bool)) private isIdInList;        // 重複登録防止用フラグ
 
     // --- イベント ---
     event SessionCompleted(address indexed player, uint256 totalReward, uint256[] treasureIds, uint256 timestamp);
@@ -46,10 +46,10 @@ contract ChihuahuaQuest is Ownable {
         backendSigner = _backendSigner;
     }
 
-    // --- 管理者用関数 ---
+    // --- 管理者用関数 (Owner Only) ---
 
     /**
-     * @dev 財宝の報酬設定を一括更新（入力値は ether 単位）
+     * @dev 報酬設定をバッチ更新 (chhAmountsInEther は 10^18 倍前の値を入力)
      */
     function setTreasureRewardsBatch(uint256[] calldata treasureIds, uint256[] calldata chhAmountsInEther) external onlyOwner {
         require(treasureIds.length == chhAmountsInEther.length, "Mismatched lengths");
@@ -61,7 +61,7 @@ contract ChihuahuaQuest is Ownable {
     }
 
     /**
-     * @dev 支払い設定（リセット費用）の変更
+     * @dev 支払い設定の更新
      */
     function setPaymentConfig(address _tokenAddress, uint256 _fee) external onlyOwner {
         require(_tokenAddress != address(0), "Invalid token address");
@@ -76,29 +76,54 @@ contract ChihuahuaQuest is Ownable {
     }
 
     /**
-     * @dev 貯まった支払いトークンを回収
+     * @dev プールされているCHHを回収
+     */
+    function withdrawCHHTokens() external onlyOwner {
+        uint256 balance = chhToken.balanceOf(address(this));
+        require(balance > 0, "No balance");
+        require(chhToken.transfer(owner(), balance), "Transfer failed");
+    }
+
+    /**
+     * @dev 回収された支払いトークン(USDC等)を回収
      */
     function withdrawPaymentTokens() external onlyOwner {
         uint256 balance = paymentToken.balanceOf(address(this));
         if (balance > 0) paymentToken.transfer(owner(), balance);
     }
 
+    /**
+     * @dev 誤送信トークンの救出用
+     */
+    function recoverERC20(address tokenAddress, uint256 amount) external onlyOwner {
+        IERC20(tokenAddress).transfer(owner(), amount);
+    }
+
     // --- メインロジック ---
 
     /**
-     * @dev 報酬の受け取りと図鑑の更新を一括で行う
+     * @dev ゲーム結果を記録し報酬を配布。不正バリデーション付き。
      */
     function recordGameSession(
         uint256[] calldata treasureIds,
         uint256 nonce,
         bytes calldata signature
     ) external {
-        // 1. 日付チェック (JST 9:00 リセット)
+        // 1. 入力バリデーション
+        require(treasureIds.length > 0 && treasureIds.length <= 10, "Invalid IDs length (1-10)");
+        
+        // 重複チェック (二重ループ: 要素数10以下ならこれが最安)
+        for (uint256 i = 0; i < treasureIds.length; i++) {
+            for (uint256 j = i + 1; j < treasureIds.length; j++) {
+                require(treasureIds[i] != treasureIds[j], "Duplicate IDs detected");
+            }
+        }
+
+        // 2. 日付と署名の検証
         uint256 currentDay = block.timestamp / 1 days;
         require(currentDay > lastClaimDay[msg.sender], "Already claimed today");
-
-        // 2. 署名検証
         require(nonce == nonces[msg.sender], "Invalid nonce");
+
         bytes32 messageHash = keccak256(abi.encodePacked(msg.sender, treasureIds, nonce, address(this)));
         bytes32 ethSignedMessageHash = MessageHashUtils.toEthSignedMessageHash(messageHash);
         require(ECDSA.recover(ethSignedMessageHash, signature) == backendSigner, "Invalid signature");
@@ -112,20 +137,18 @@ contract ChihuahuaQuest is Ownable {
         for (uint256 i = 0; i < treasureIds.length; i++) {
             uint256 tid = treasureIds[i];
             
-            // 図鑑データの更新
             userInventory[msg.sender][tid] += 1;
             if (!isIdInList[msg.sender][tid]) {
                 userOwnedIds[msg.sender].push(tid);
                 isIdInList[msg.sender][tid] = true;
             }
 
-            // 報酬の加算
             if (treasureRewards[tid].exists) {
                 totalReward += treasureRewards[tid].chhAmount;
             }
         }
 
-        // 5. 送金
+        // 5. 報酬送金
         if (totalReward > 0) {
             require(chhToken.transfer(msg.sender, totalReward), "CHH transfer failed");
         }
@@ -134,11 +157,11 @@ contract ChihuahuaQuest is Ownable {
     }
 
     /**
-     * @dev 費用を支払い、本日のClaim制限を解除する
+     * @dev 手数料を支払い、本日の制限をリセット
      */
     function resetClaimCooldown() external {
-        require(address(paymentToken) != address(0), "Token not set");
-        require(lastClaimDay[msg.sender] == (block.timestamp / 1 days), "Reset not required");
+        require(address(paymentToken) != address(0), "Payment token not set");
+        require(lastClaimDay[msg.sender] == (block.timestamp / 1 days), "No reset needed");
         
         require(paymentToken.transferFrom(msg.sender, address(this), resetFee), "Payment failed");
         
@@ -146,15 +169,14 @@ contract ChihuahuaQuest is Ownable {
         emit ClaimCooldownReset(msg.sender, resetFee);
     }
 
-    // --- 表示用（View）関数 ---
+    // --- View関数 ---
 
     /**
-     * @dev ユーザーの図鑑データを一括取得
+     * @dev ユーザーの図鑑（IDリストと各個数）を一括取得
      */
     function getPlayerInventory(address player) external view returns (uint256[] memory ids, uint256[] memory counts) {
         uint256[] memory ownedIds = userOwnedIds[player];
         uint256[] memory rewardCounts = new uint256[](ownedIds.length);
-        
         for (uint256 i = 0; i < ownedIds.length; i++) {
             rewardCounts[i] = userInventory[player][ownedIds[i]];
         }

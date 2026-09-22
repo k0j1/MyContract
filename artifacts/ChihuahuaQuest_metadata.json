@@ -334,6 +334,24 @@
 				"type": "function"
 			},
 			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "tokenAddress",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "recoverERC20",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
 				"inputs": [],
 				"name": "renounceOwnership",
 				"outputs": [],
@@ -472,6 +490,13 @@
 			},
 			{
 				"inputs": [],
+				"name": "withdrawCHHTokens",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
 				"name": "withdrawPaymentTokens",
 				"outputs": [],
 				"stateMutability": "nonpayable",
@@ -479,7 +504,7 @@
 			}
 		],
 		"devdoc": {
-			"details": "1日1回報酬受取、手数料によるリセット、およびオンチェーン図鑑機能を備えたゲームコントラクト",
+			"details": "報酬受取、クールダウンリセット、オンチェーン図鑑、不正防止バリデーションを統合",
 			"errors": {
 				"ECDSAInvalidSignature()": [
 					{
@@ -510,31 +535,37 @@
 			"kind": "dev",
 			"methods": {
 				"getPlayerInventory(address)": {
-					"details": "ユーザーの図鑑データを一括取得"
+					"details": "ユーザーの図鑑（IDリストと各個数）を一括取得"
 				},
 				"owner()": {
 					"details": "Returns the address of the current owner."
 				},
 				"recordGameSession(uint256[],uint256,bytes)": {
-					"details": "報酬の受け取りと図鑑の更新を一括で行う"
+					"details": "ゲーム結果を記録し報酬を配布。不正バリデーション付き。"
+				},
+				"recoverERC20(address,uint256)": {
+					"details": "誤送信トークンの救出用"
 				},
 				"renounceOwnership()": {
 					"details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby disabling any functionality that is only available to the owner."
 				},
 				"resetClaimCooldown()": {
-					"details": "費用を支払い、本日のClaim制限を解除する"
+					"details": "手数料を支払い、本日の制限をリセット"
 				},
 				"setPaymentConfig(address,uint256)": {
-					"details": "支払い設定（リセット費用）の変更"
+					"details": "支払い設定の更新"
 				},
 				"setTreasureRewardsBatch(uint256[],uint256[])": {
-					"details": "財宝の報酬設定を一括更新（入力値は ether 単位）"
+					"details": "報酬設定をバッチ更新 (chhAmountsInEther は 10^18 倍前の値を入力)"
 				},
 				"transferOwnership(address)": {
 					"details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
 				},
+				"withdrawCHHTokens()": {
+					"details": "プールされているCHHを回収"
+				},
 				"withdrawPaymentTokens()": {
-					"details": "貯まった支払いトークンを回収"
+					"details": "回収された支払いトークン(USDC等)を回収"
 				}
 			},
 			"title": "ChihuahuaQuest",
@@ -651,11 +682,11 @@
 			]
 		},
 		"Script/ChihuahuaQuest.sol": {
-			"keccak256": "0x608ac42ac26c4b31edfa1de6eda781ec71e4c005e58c7c3a67a6169a538db694",
+			"keccak256": "0xcdcb8752a026cc772b5053d8cf26e58cc43e4b7ff57af885cb588877fcbbe910",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://be27add3a74fb8ef91060c6ba54965128373f3f6d220ebc95235051420b90106",
-				"dweb:/ipfs/QmWXLyPj54yjsJRoaoqSApQpbFqtLJyAgDxVR4TFvbihVB"
+				"bzz-raw://03244fae6bb160c5728fe7e783bca46a0d2726906f4f22f0ad8e62727e0c6481",
+				"dweb:/ipfs/Qmc5JjCAKHLBaocyFRgf1abC9dJAdVWdoPurdsqCoahd1m"
 			]
 		}
 	},
